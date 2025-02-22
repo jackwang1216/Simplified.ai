@@ -1,8 +1,10 @@
-import React, { useState } from 'react';
+import React from 'react';
+import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import { ThemeProvider, createTheme } from '@mui/material/styles';
 import CssBaseline from '@mui/material/CssBaseline';
 import LandingPage from './pages/LandingPage';
 import SimplificationPage from './pages/SimplificationPage';
+import ErrorPage from './pages/ErrorPage';
 
 const theme = createTheme({
   palette: {
@@ -28,16 +30,16 @@ const theme = createTheme({
 });
 
 function App() {
-  const [showSimplification, setShowSimplification] = useState(false);
-
   return (
     <ThemeProvider theme={theme}>
       <CssBaseline />
-      {showSimplification ? (
-        <SimplificationPage />
-      ) : (
-        <LandingPage onStartClick={() => setShowSimplification(true)} />
-      )}
+      <Router>
+        <Routes>
+          <Route path="/" element={<LandingPage />} />
+          <Route path="/simplify" element={<SimplificationPage />} />
+          <Route path="*" element={<ErrorPage />} />
+        </Routes>
+      </Router>
     </ThemeProvider>
   );
 }

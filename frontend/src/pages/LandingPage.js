@@ -1,4 +1,5 @@
 import React from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Box, Button, Container, Typography } from '@mui/material';
 import { styled } from '@mui/material/styles';
 
@@ -24,7 +25,9 @@ const VideoPlaceholder = styled(Box)(({ theme }) => ({
   marginTop: theme.spacing(4),
 }));
 
-const LandingPage = ({ onStartClick }) => {
+const LandingPage = () => {
+  const navigate = useNavigate();
+
   return (
     <StyledContainer>
       <Typography variant="h2" component="h1" gutterBottom>
@@ -33,7 +36,7 @@ const LandingPage = ({ onStartClick }) => {
       <Button
         variant="contained"
         size="large"
-        onClick={onStartClick}
+        onClick={() => navigate('/simplify')}
         sx={{
           fontSize: '1.5rem',
           padding: '16px 32px',
