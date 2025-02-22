@@ -3,6 +3,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from api.simplification import simplify_text
 from api.document_parser import parse_document
 from api.text_to_speech import generate_speech
+from api.question_answering import answer_question
 from utils.error_handler import handle_error
 from typing import Optional
 from pydantic import BaseModel
@@ -21,6 +22,10 @@ app.add_middleware(
 class SimplifyRequest(BaseModel):
     text: str
     reading_level: Optional[str] = "intermediate"
+
+class QuestionRequest(BaseModel):
+    question: str
+    context: str
 
 @app.get("/api/test")
 async def test():
@@ -58,6 +63,14 @@ async def upload(
         }
     except Exception as e:
         print(f"Error processing file: {str(e)}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.post("/api/question")
+async def question(request: QuestionRequest):
+    try:
+        answer = answer_question(request.question, request.context)
+        return {"answer": answer}
+    except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
 if __name__ == "__main__":
