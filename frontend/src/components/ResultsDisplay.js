@@ -8,12 +8,12 @@ import {
   TextField,
   Button,
   CircularProgress,
-  Collapse,
+  // Collapse,
   Alert,
-  Divider,
+  // Divider,
 } from '@mui/material';
 import VolumeUpIcon from '@mui/icons-material/VolumeUp';
-import ChatIcon from '@mui/icons-material/Chat';
+// import ChatIcon from '@mui/icons-material/Chat';
 import QuestionAnswerIcon from '@mui/icons-material/QuestionAnswer';
 import axios from 'axios';
 
@@ -38,16 +38,16 @@ const ResultsDisplay = ({
 
   const handleQuestionSubmit = async () => {
     if (!question.trim()) return;
-    
+
     try {
       setIsAnswering(true);
       setError(null);
-      
+
       const response = await axios.post(`${API_URL}/api/question`, {
         question: question,
         context: simplifiedText
       });
-      
+
       setAnswer(response.data.answer);
       setQuestion('');
     } catch (err) {

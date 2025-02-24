@@ -1,6 +1,6 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Box, Button, Container, Typography } from '@mui/material';
+import { Button, Container, Typography } from '@mui/material';
 import { styled } from '@mui/material/styles';
 
 const StyledContainer = styled(Container)(({ theme }) => ({

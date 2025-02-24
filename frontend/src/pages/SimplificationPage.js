@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Box, Container, Grid, Paper } from '@mui/material';
+import { Container, Grid, Paper } from '@mui/material';
 import FileUpload from '../components/FileUpload';
 import SimplificationOptions from '../components/SimplificationOptions';
 import ResultsDisplay from '../components/ResultsDisplay';
@@ -36,12 +36,12 @@ const SimplificationPage = () => {
       setIsLoading(true);
       setError(null);
       setOriginalText(text);
-      
+
       const response = await axios.post(`${API_URL}/api/simplify`, {
         text,
         reading_level: readingLevel
       });
-      
+
       setSimplifiedText(response.data.simplified_text);
     } catch (err) {
       setError('Failed to simplify text. Please try again.');
@@ -55,21 +55,21 @@ const SimplificationPage = () => {
     try {
       setIsLoading(true);
       setError(null);
-      
+
       const formData = new FormData();
       formData.append('file', file);
       formData.append('reading_level', readingLevel);
-      
+
       console.log('Uploading file:', file.name);
-      
+
       const response = await axios.post(`${API_URL}/api/upload`, formData, {
         headers: {
           'Content-Type': 'multipart/form-data'
         }
       });
-      
+
       console.log('Upload response:', response.data);
-      
+
       setOriginalText(response.data.original_text);
       setSimplifiedText(response.data.simplified_text);
     } catch (err) {
@@ -85,15 +85,15 @@ const SimplificationPage = () => {
       <Grid container spacing={3}>
         <Grid item xs={12}>
           <Paper elevation={3} sx={{ p: 3 }}>
-            <FileUpload 
-              onFileUpload={handleFileUpload} 
+            <FileUpload
+              onFileUpload={handleFileUpload}
               onTextSubmit={handleTextSubmit}
               isLoading={isLoading}
               error={error}
             />
           </Paper>
         </Grid>
-        
+
         <Grid item xs={12}>
           <Paper elevation={3} sx={{ p: 3 }}>
             <SimplificationOptions
