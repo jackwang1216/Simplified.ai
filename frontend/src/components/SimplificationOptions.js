@@ -1,4 +1,4 @@
-import React from 'react';
+import React from "react";
 import {
   Box,
   FormControl,
@@ -9,7 +9,7 @@ import {
   FormControlLabel,
   Typography,
   Grid,
-} from '@mui/material';
+} from "@mui/material";
 
 const SimplificationOptions = ({
   readingLevel,
@@ -24,7 +24,7 @@ const SimplificationOptions = ({
       <Typography variant="h6" gutterBottom>
         Simplification Options
       </Typography>
-      
+
       <Grid container spacing={3} alignItems="center">
         <Grid item xs={12} md={4}>
           <FormControl fullWidth>

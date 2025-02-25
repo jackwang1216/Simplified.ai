@@ -1,6 +1,6 @@
 import os
 from google.cloud import texttospeech
-from elevenlabs import generate, set_api_key
+import elevenlabs
 from dotenv import load_dotenv
 
 # Load environment variables from .env file
@@ -35,10 +35,10 @@ def generate_speech_elevenlabs(text):
         if not elevenlabs_api_key:
             raise ValueError("ELEVENLABS_API_KEY not found in environment variables")
             
-        set_api_key(elevenlabs_api_key)
-        audio = generate(
+        elevenlabs.set_api_key(elevenlabs_api_key)
+        audio = elevenlabs.generate(
             text=text,
-            voice="Josh",  # Can be customized
+            voice="Josh",
             model="eleven_monolingual_v1"
         )
         
@@ -55,19 +55,25 @@ def generate_speech_google(text):
         if not google_credentials:
             raise ValueError("GOOGLE_APPLICATION_CREDENTIALS not found in environment variables")
             
+        # Initialize the client
         client = texttospeech.TextToSpeechClient()
         
+        # Set the text input to be synthesized
         synthesis_input = texttospeech.SynthesisInput(text=text)
         
+        # Build the voice request
         voice = texttospeech.VoiceSelectionParams(
             language_code="en-US",
+            name="en-US-Standard-C",
             ssml_gender=texttospeech.SsmlVoiceGender.NEUTRAL
         )
         
+        # Select the type of audio file
         audio_config = texttospeech.AudioConfig(
             audio_encoding=texttospeech.AudioEncoding.MP3
         )
         
+        # Perform the text-to-speech request
         response = client.synthesize_speech(
             input=synthesis_input,
             voice=voice,
@@ -78,5 +84,5 @@ def generate_speech_google(text):
         return "audio_url_placeholder"
         
     except Exception as e:
-        print(f"Error generating speech with Google Cloud: {str(e)}")
-        raise Exception("Failed to generate speech")
+        print(f"Error generating speech with Google Cloud TTS: {str(e)}")
+        raise

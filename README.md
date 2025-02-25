@@ -15,10 +15,9 @@ An AI-powered accessibility tool that simplifies complex documents for better un
 ## Tech Stack
 
 - Frontend: React.js with Material-UI
-- Backend: Flask/FastAPI
-- AI: OpenAI GPT-4 Turbo
+- Backend: FastAPI and Python
 - Document Parsing: PDF.js
-- Text-to-Speech: Google TTS/ElevenLabs
+- API: Google TTS/ElevenLabs, Open AI
 
 
 ## Usage

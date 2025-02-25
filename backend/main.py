@@ -5,7 +5,7 @@ from api.document_parser import parse_document
 from api.text_to_speech import generate_speech
 from api.question_answering import answer_question
 from utils.error_handler import handle_error
-from typing import Optional
+from typing import Optional, List
 from pydantic import BaseModel
 
 app = FastAPI()
@@ -19,9 +19,19 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+class GlossaryItem(BaseModel):
+    word: str
+    definition: str
+    examples: Optional[str] = None
+
 class SimplifyRequest(BaseModel):
     text: str
     reading_level: Optional[str] = "intermediate"
+    generate_glossary: Optional[bool] = False
+
+class SimplifyResponse(BaseModel):
+    simplified_text: str
+    glossary: Optional[List[GlossaryItem]] = None
 
 class QuestionRequest(BaseModel):
     question: str
@@ -31,18 +41,26 @@ class QuestionRequest(BaseModel):
 async def test():
     return {"status": "ok", "message": "Backend server is running"}
 
-@app.post("/api/simplify")
+@app.post("/api/simplify", response_model=SimplifyResponse)
 async def simplify(request: SimplifyRequest):
     try:
-        simplified = simplify_text(request.text, request.reading_level)
-        return {"simplified_text": simplified}
+        simplified, glossary = simplify_text(
+            request.text,
+            request.reading_level,
+            request.generate_glossary
+        )
+        return SimplifyResponse(
+            simplified_text=simplified,
+            glossary=glossary
+        )
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
 @app.post("/api/upload")
 async def upload(
     file: UploadFile = File(...),
-    reading_level: str = Form("intermediate")
+    reading_level: str = Form("intermediate"),
+    generate_glossary: bool = Form(False)
 ):
     try:
         contents = await file.read()
@@ -55,11 +73,16 @@ async def upload(
         original_text = parse_document(file_obj)
         
         # Simplify the text
-        simplified_text = simplify_text(original_text, reading_level)
+        simplified_text, glossary = simplify_text(
+            original_text,
+            reading_level,
+            generate_glossary
+        )
         
         return {
             "original_text": original_text,
-            "simplified_text": simplified_text
+            "simplified_text": simplified_text,
+            "glossary": glossary
         }
     except Exception as e:
         print(f"Error processing file: {str(e)}")

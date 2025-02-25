@@ -8,12 +8,9 @@ import {
   TextField,
   Button,
   CircularProgress,
-  // Collapse,
   Alert,
-  // Divider,
 } from '@mui/material';
 import VolumeUpIcon from '@mui/icons-material/VolumeUp';
-// import ChatIcon from '@mui/icons-material/Chat';
 import QuestionAnswerIcon from '@mui/icons-material/QuestionAnswer';
 import axios from 'axios';
 
@@ -25,6 +22,8 @@ const ResultsDisplay = ({
   isTextToSpeechEnabled,
   isGlossaryEnabled,
   isLoading,
+  glossaryItems = [],
+  onWordClick,
 }) => {
   const [question, setQuestion] = useState('');
   const [answer, setAnswer] = useState('');
@@ -62,6 +61,24 @@ const ResultsDisplay = ({
     if (e.key === 'Enter' && !e.shiftKey) {
       e.preventDefault();
       handleQuestionSubmit();
+    }
+  };
+
+  const highlightGlossaryWords = (text) => {
+    if (!isGlossaryEnabled || !glossaryItems.length) return text;
+
+    let highlightedText = text;
+    glossaryItems.forEach(({ word }) => {
+      const regex = new RegExp(`\\b${word}\\b`, 'gi');
+      highlightedText = highlightedText.replace(regex, `<span class="glossary-word" data-word="${word}">$&</span>`);
+    });
+    return highlightedText;
+  };
+
+  const handleWordClick = (event) => {
+    const word = event.target.dataset.word;
+    if (word) {
+      onWordClick(word);
     }
   };
 
@@ -124,7 +141,13 @@ const ResultsDisplay = ({
                 <Typography>Simplifying your text...</Typography>
               </Box>
             ) : (
-              <Typography variant="body1">{simplifiedText}</Typography>
+              <Typography
+                variant="body1"
+                onClick={handleWordClick}
+                dangerouslySetInnerHTML={{
+                  __html: simplifiedText ? highlightGlossaryWords(simplifiedText) : '',
+                }}
+              />
             )}
           </Paper>
         </Grid>

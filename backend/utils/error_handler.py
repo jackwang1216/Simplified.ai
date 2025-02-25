@@ -1,4 +1,5 @@
-from flask import jsonify
+from fastapi import HTTPException
+from fastapi.responses import JSONResponse
 
 def handle_error(error):
     """
@@ -8,24 +9,28 @@ def handle_error(error):
         error: Exception object
     
     Returns:
-        tuple: (JSON response, HTTP status code)
+        JSONResponse: JSON response with error details
     """
-    error_message = str(error)
-    
     if isinstance(error, ValueError):
-        return jsonify({
-            'error': 'Invalid input',
-            'message': error_message
-        }), 400
+        return JSONResponse(
+            status_code=400,
+            content={"error": "Invalid input", "message": str(error)}
+        )
         
     elif isinstance(error, FileNotFoundError):
-        return jsonify({
-            'error': 'File not found',
-            'message': error_message
-        }), 404
+        return JSONResponse(
+            status_code=404,
+            content={"error": "File not found", "message": str(error)}
+        )
+        
+    elif isinstance(error, HTTPException):
+        return JSONResponse(
+            status_code=error.status_code,
+            content={"error": error.detail}
+        )
         
     else:
-        return jsonify({
-            'error': 'Internal server error',
-            'message': error_message
-        }), 500
+        return JSONResponse(
+            status_code=500,
+            content={"error": "Internal server error", "message": str(error)}
+        )
