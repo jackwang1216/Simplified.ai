@@ -1,6 +1,6 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import axios from "axios";
-import { Box, Grid, Paper, Typography } from "@mui/material";
+import { Box, Grid, Paper, Typography, Container } from "@mui/material";
 import FileUpload from "../components/FileUpload";
 import SimplificationOptions from "../components/SimplificationOptions";
 import ResultsDisplay from "../components/ResultsDisplay";
@@ -18,18 +18,39 @@ const SimplificationPage = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState(null);
 
-  // Test backend connection on component mount
-  // useEffect(() => {
-  //   const testConnection = async () => {
-  //     try {
-  //       const response = await axios.get(`${API_URL}/api/test`);
-  //       console.log("Backend connection test:", response.data);
-  //     } catch (err) {
-  //       console.error("Backend connection test failed:", err);
-  //     }
-  //   };
-  //   testConnection();
-  // }, []);
+  // Generate speech when toggle is switched on
+  useEffect(() => {
+    const generateSpeech = async () => {
+      if (isTextToSpeechEnabled && simplifiedText && !audioUrl) {
+        try {
+          setIsLoading(true);
+          const response = await axios.post(`${API_URL}/api/simplify`, {
+            text: simplifiedText,
+            reading_level: readingLevel,
+            text_to_speech: true
+          });
+          
+          if (response.data.audio_url) {
+            setAudioUrl(`${API_URL}${response.data.audio_url}`);
+          }
+        } catch (err) {
+          setError("Failed to generate speech. Please try again.");
+          console.error("Error:", err);
+        } finally {
+          setIsLoading(false);
+        }
+      }
+    };
+
+    generateSpeech();
+  }, [isTextToSpeechEnabled, API_URL, simplifiedText, audioUrl]);
+
+  const handleTextToSpeechToggle = (enabled) => {
+    setIsTextToSpeechEnabled(enabled);
+    if (!enabled) {
+      setAudioUrl(null);
+    }
+  };
 
   const handleTextSubmit = async (text) => {
     try {
@@ -122,38 +143,37 @@ const SimplificationPage = () => {
                 isLoading={isLoading}
                 error={error}
               />
+              <Box sx={{ mt: 3 }}>
+                <SimplificationOptions
+                  readingLevel={readingLevel}
+                  onReadingLevelChange={setReadingLevel}
+                  isTextToSpeechEnabled={isTextToSpeechEnabled}
+                  onTextToSpeechToggle={handleTextToSpeechToggle}
+                />
+              </Box>
             </Paper>
           </Grid>
 
-          <Grid item xs={12}>
-            <Paper elevation={3} sx={{ p: 3 }}>
-              <SimplificationOptions
-                readingLevel={readingLevel}
-                onReadingLevelChange={setReadingLevel}
-                isTextToSpeechEnabled={isTextToSpeechEnabled}
-                onTextToSpeechToggle={setIsTextToSpeechEnabled}
-              />
-            </Paper>
-          </Grid>
-
-          <Grid item xs={12}>
-            <Paper elevation={3} sx={{ p: 3 }}>
-              <ResultsDisplay
-                originalText={originalText}
-                simplifiedText={simplifiedText}
-                audioUrl={audioUrl}
-                isTextToSpeechEnabled={isTextToSpeechEnabled}
-                isLoading={isLoading}
-                error={error}
-                onRetry={() => {
-                  setOriginalText("");
-                  setSimplifiedText("");
-                  setAudioUrl(null);
-                  setError(null);
-                }}
-              />
-            </Paper>
-          </Grid>
+          {(originalText || simplifiedText) && (
+            <Grid item xs={12}>
+              <Paper elevation={3} sx={{ p: 3 }}>
+                <ResultsDisplay
+                  originalText={originalText}
+                  simplifiedText={simplifiedText}
+                  audioUrl={audioUrl}
+                  isTextToSpeechEnabled={isTextToSpeechEnabled}
+                  isLoading={isLoading}
+                  error={error}
+                  onRetry={() => {
+                    setOriginalText("");
+                    setSimplifiedText("");
+                    setAudioUrl(null);
+                    setError(null);
+                  }}
+                />
+              </Paper>
+            </Grid>
+          )}
 
           {simplifiedText && (
             <Grid item xs={12}>
