@@ -32,9 +32,9 @@ const SimplificationOptions = ({
               label="Reading Level"
               onChange={(e) => onReadingLevelChange(e.target.value)}
             >
-              <MenuItem value="beginner">Beginner</MenuItem>
-              <MenuItem value="intermediate">Intermediate</MenuItem>
-              <MenuItem value="expert">Expert</MenuItem>
+              <MenuItem value="5">5th Grade</MenuItem>
+              <MenuItem value="8">8th Grade</MenuItem>
+              <MenuItem value="12">12th Grade</MenuItem>
             </Select>
           </FormControl>
         </Grid>

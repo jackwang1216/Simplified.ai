@@ -13,7 +13,7 @@ const SimplificationPage = () => {
   const [originalText, setOriginalText] = useState("");
   const [simplifiedText, setSimplifiedText] = useState("");
   const [audioUrl, setAudioUrl] = useState(null);
-  const [readingLevel, setReadingLevel] = useState("elementary");
+  const [readingLevel, setReadingLevel] = useState("beginner");
   const [isTextToSpeechEnabled, setIsTextToSpeechEnabled] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState(null);
