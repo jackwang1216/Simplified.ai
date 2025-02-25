@@ -1,11 +1,10 @@
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
+import axios from "axios";
 import { Box, Grid, Paper, Typography } from "@mui/material";
 import FileUpload from "../components/FileUpload";
 import SimplificationOptions from "../components/SimplificationOptions";
 import ResultsDisplay from "../components/ResultsDisplay";
 import ExportOptions from "../components/ExportOptions";
-import GlossaryPanel from "../components/GlossaryPanel";
-import axios from "axios";
 
 // Frontend runs on port 3000, backend on port 8000
 const API_URL = "http://localhost:8000";
@@ -13,47 +12,41 @@ const API_URL = "http://localhost:8000";
 const SimplificationPage = () => {
   const [originalText, setOriginalText] = useState("");
   const [simplifiedText, setSimplifiedText] = useState("");
-  const [readingLevel, setReadingLevel] = useState("intermediate");
+  const [readingLevel, setReadingLevel] = useState("elementary");
   const [isTextToSpeechEnabled, setIsTextToSpeechEnabled] = useState(false);
-  const [isGlossaryEnabled, setIsGlossaryEnabled] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState(null);
-  const [selectedWord, setSelectedWord] = useState(null);
-  const [glossaryItems, setGlossaryItems] = useState([]);
 
   // Test backend connection on component mount
-  useEffect(() => {
-    const testConnection = async () => {
-      try {
-        const response = await axios.get(`${API_URL}/api/test`);
-        console.log("Backend connection test:", response.data);
-      } catch (err) {
-        console.error("Backend connection test failed:", err);
-      }
-    };
-    testConnection();
-  }, []);
+  // useEffect(() => {
+  //   const testConnection = async () => {
+  //     try {
+  //       const response = await axios.get(`${API_URL}/api/test`);
+  //       console.log("Backend connection test:", response.data);
+  //     } catch (err) {
+  //       console.error("Backend connection test failed:", err);
+  //     }
+  //   };
+  //   testConnection();
+  // }, []);
 
   const handleTextSubmit = async (text) => {
     try {
       setIsLoading(true);
       setError(null);
       setOriginalText(text);
-      setGlossaryItems([]); // Reset glossary items
+      setSimplifiedText("");
 
       const response = await axios.post(`${API_URL}/api/simplify`, {
         text,
         reading_level: readingLevel,
-        generate_glossary: isGlossaryEnabled,
+        text_to_speech: isTextToSpeechEnabled,
       });
 
       setSimplifiedText(response.data.simplified_text);
-      if (response.data.glossary && Array.isArray(response.data.glossary)) {
-        setGlossaryItems(response.data.glossary);
-      }
-    } catch (err) {
-      setError("Failed to simplify text. Please try again.");
-      console.error("Error:", err);
+    } catch (error) {
+      setError("An error occurred while simplifying the text. Please try again.");
+      console.error("Error:", error);
     } finally {
       setIsLoading(false);
     }
@@ -63,11 +56,11 @@ const SimplificationPage = () => {
     try {
       setIsLoading(true);
       setError(null);
-
+      
       const formData = new FormData();
       formData.append("file", file);
       formData.append("reading_level", readingLevel);
-      formData.append("generate_glossary", isGlossaryEnabled);
+      formData.append("text_to_speech", isTextToSpeechEnabled);
 
       const response = await axios.post(`${API_URL}/api/upload`, formData, {
         headers: {
@@ -77,26 +70,12 @@ const SimplificationPage = () => {
 
       setOriginalText(response.data.original_text);
       setSimplifiedText(response.data.simplified_text);
-      if (response.data.glossary) {
-        setGlossaryItems(response.data.glossary);
-      }
-    } catch (err) {
-      setError("Failed to process file. Please try again.");
-      console.error("Error details:", err.response?.data || err.message);
+    } catch (error) {
+      setError("An error occurred while processing the file. Please try again.");
+      console.error("Error:", error);
     } finally {
       setIsLoading(false);
     }
-  };
-
-  const handleGlossaryToggle = (enabled) => {
-    setIsGlossaryEnabled(enabled);
-    if (!enabled) {
-      setSelectedWord(null);
-    }
-  };
-
-  const handleWordClick = (word) => {
-    setSelectedWord(word);
   };
 
   return (
@@ -121,10 +100,6 @@ const SimplificationPage = () => {
               easing: theme.transitions.easing.sharp,
               duration: theme.transitions.duration.enteringScreen,
             }),
-          ...(isGlossaryEnabled && {
-            mr: { xs: 0, md: "250px" },
-            maxWidth: { md: "calc(100% - 250px)" },
-          }),
         }}
       >
         <Box sx={{ display: "flex", alignItems: "center", mb: 3, gap: 2 }}>
@@ -151,8 +126,6 @@ const SimplificationPage = () => {
                 onReadingLevelChange={setReadingLevel}
                 isTextToSpeechEnabled={isTextToSpeechEnabled}
                 onTextToSpeechToggle={setIsTextToSpeechEnabled}
-                isGlossaryEnabled={isGlossaryEnabled}
-                onGlossaryToggle={handleGlossaryToggle}
               />
             </Paper>
           </Grid>
@@ -165,9 +138,6 @@ const SimplificationPage = () => {
                 isLoading={isLoading}
                 error={error}
                 isTextToSpeechEnabled={isTextToSpeechEnabled}
-                glossaryEnabled={isGlossaryEnabled}
-                glossaryItems={glossaryItems}
-                onWordClick={handleWordClick}
               />
             </Paper>
           </Grid>
@@ -184,14 +154,6 @@ const SimplificationPage = () => {
           )}
         </Grid>
       </Box>
-
-      <GlossaryPanel
-        open={isGlossaryEnabled}
-        onClose={() => setIsGlossaryEnabled(false)}
-        glossaryItems={glossaryItems}
-        selectedWord={selectedWord}
-        simplifiedText={simplifiedText}
-      />
     </Box>
   );
 };

@@ -16,8 +16,6 @@ const SimplificationOptions = ({
   onReadingLevelChange,
   isTextToSpeechEnabled,
   onTextToSpeechToggle,
-  isGlossaryEnabled,
-  onGlossaryToggle,
 }) => {
   return (
     <Box>
@@ -51,19 +49,6 @@ const SimplificationOptions = ({
               />
             }
             label="Text-to-Speech"
-          />
-        </Grid>
-
-        <Grid item xs={12} md={4}>
-          <FormControlLabel
-            control={
-              <Switch
-                checked={isGlossaryEnabled}
-                onChange={(e) => onGlossaryToggle(e.target.checked)}
-                color="primary"
-              />
-            }
-            label="Glossary Explanations"
           />
         </Grid>
       </Grid>

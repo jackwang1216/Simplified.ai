@@ -1,12 +1,10 @@
-from fastapi import FastAPI, File, Form, UploadFile, HTTPException
+from fastapi import FastAPI, UploadFile, File, Form, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
-from api.simplification import simplify_text
-from api.document_parser import parse_document
-from api.text_to_speech import generate_speech
-from api.question_answering import answer_question
-from utils.error_handler import handle_error
-from typing import Optional, List
 from pydantic import BaseModel
+from typing import Optional
+from api.simplification import simplify_text
+import PyPDF2
+import io
 
 app = FastAPI()
 
@@ -19,39 +17,30 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-class GlossaryItem(BaseModel):
-    word: str
-    definition: str
-    examples: Optional[str] = None
-
-class SimplifyRequest(BaseModel):
+class SimplificationRequest(BaseModel):
     text: str
-    reading_level: Optional[str] = "intermediate"
-    generate_glossary: Optional[bool] = False
+    reading_level: str
+    text_to_speech: Optional[bool] = False
 
-class SimplifyResponse(BaseModel):
+class SimplificationResponse(BaseModel):
     simplified_text: str
-    glossary: Optional[List[GlossaryItem]] = None
-
-class QuestionRequest(BaseModel):
-    question: str
-    context: str
+    original_text: Optional[str] = None
 
 @app.get("/api/test")
 async def test():
     return {"status": "ok", "message": "Backend server is running"}
 
-@app.post("/api/simplify", response_model=SimplifyResponse)
-async def simplify(request: SimplifyRequest):
+@app.post("/api/simplify", response_model=SimplificationResponse)
+async def simplify(request: SimplificationRequest):
     try:
-        simplified, glossary = simplify_text(
+        simplified = simplify_text(
             request.text,
             request.reading_level,
-            request.generate_glossary
         )
-        return SimplifyResponse(
+        
+        return SimplificationResponse(
             simplified_text=simplified,
-            glossary=glossary
+            original_text=request.text
         )
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
@@ -59,39 +48,36 @@ async def simplify(request: SimplifyRequest):
 @app.post("/api/upload")
 async def upload(
     file: UploadFile = File(...),
-    reading_level: str = Form("intermediate"),
-    generate_glossary: bool = Form(False)
-):
+    reading_level: str = Form(...),
+    text_to_speech: bool = Form(False)
+) -> SimplificationResponse:
     try:
-        contents = await file.read()
-        # Create a temporary file-like object
-        from io import BytesIO
-        file_obj = BytesIO(contents)
-        file_obj.filename = file.filename  # Add filename attribute for compatibility
+        content = await file.read()
         
-        # Parse the document
-        original_text = parse_document(file_obj)
+        if file.filename.endswith('.pdf'):
+            pdf_reader = PyPDF2.PdfReader(io.BytesIO(content))
+            text = ""
+            for page in pdf_reader.pages:
+                text += page.extract_text()
+        else:
+            text = content.decode()
         
-        # Simplify the text
-        simplified_text, glossary = simplify_text(
-            original_text,
+        simplified_text = simplify_text(
+            text,
             reading_level,
-            generate_glossary
         )
         
-        return {
-            "original_text": original_text,
-            "simplified_text": simplified_text,
-            "glossary": glossary
-        }
+        return SimplificationResponse(
+            simplified_text=simplified_text,
+            original_text=text
+        )
     except Exception as e:
-        print(f"Error processing file: {str(e)}")
         raise HTTPException(status_code=500, detail=str(e))
 
 @app.post("/api/question")
-async def question(request: QuestionRequest):
+async def question(request: dict):
     try:
-        answer = answer_question(request.question, request.context)
+        answer = answer_question(request["question"], request["context"])
         return {"answer": answer}
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))

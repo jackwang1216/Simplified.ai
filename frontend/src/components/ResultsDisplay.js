@@ -11,7 +11,6 @@ import {
   Alert,
 } from '@mui/material';
 import VolumeUpIcon from '@mui/icons-material/VolumeUp';
-import QuestionAnswerIcon from '@mui/icons-material/QuestionAnswer';
 import axios from 'axios';
 
 const API_URL = 'http://localhost:8000';
@@ -20,10 +19,8 @@ const ResultsDisplay = ({
   originalText,
   simplifiedText,
   isTextToSpeechEnabled,
-  isGlossaryEnabled,
   isLoading,
-  glossaryItems = [],
-  onWordClick,
+  onRetry,
 }) => {
   const [question, setQuestion] = useState('');
   const [answer, setAnswer] = useState('');
@@ -61,24 +58,6 @@ const ResultsDisplay = ({
     if (e.key === 'Enter' && !e.shiftKey) {
       e.preventDefault();
       handleQuestionSubmit();
-    }
-  };
-
-  const highlightGlossaryWords = (text) => {
-    if (!isGlossaryEnabled || !glossaryItems.length) return text;
-
-    let highlightedText = text;
-    glossaryItems.forEach(({ word }) => {
-      const regex = new RegExp(`\\b${word}\\b`, 'gi');
-      highlightedText = highlightedText.replace(regex, `<span class="glossary-word" data-word="${word}">$&</span>`);
-    });
-    return highlightedText;
-  };
-
-  const handleWordClick = (event) => {
-    const word = event.target.dataset.word;
-    if (word) {
-      onWordClick(word);
     }
   };
 
@@ -143,9 +122,8 @@ const ResultsDisplay = ({
             ) : (
               <Typography
                 variant="body1"
-                onClick={handleWordClick}
                 dangerouslySetInnerHTML={{
-                  __html: simplifiedText ? highlightGlossaryWords(simplifiedText) : '',
+                  __html: simplifiedText || '',
                 }}
               />
             )}
@@ -155,7 +133,6 @@ const ResultsDisplay = ({
         <Grid item xs={12}>
           <Paper sx={{ p: 2, mt: 2 }}>
             <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
-              <QuestionAnswerIcon color="primary" sx={{ mr: 1 }} />
               <Typography variant="subtitle1">
                 Ask AI about the text
               </Typography>
