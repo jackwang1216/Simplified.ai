@@ -2,6 +2,8 @@ import os
 from google.cloud import texttospeech
 import elevenlabs
 from dotenv import load_dotenv
+from typing import Optional
+from pydantic import BaseModel
 
 # Load environment variables from .env file
 load_dotenv()
@@ -36,14 +38,30 @@ def generate_speech_elevenlabs(text):
             raise ValueError("ELEVENLABS_API_KEY not found in environment variables")
             
         elevenlabs.set_api_key(elevenlabs_api_key)
+        
+        # Use voice ID for Rachel
+        voice_id = "21m00Tcm4TlvDq8ikWAM"  # Rachel voice ID
+        
         audio = elevenlabs.generate(
             text=text,
-            voice="Josh",
+            voice=voice_id,
             model="eleven_monolingual_v1"
         )
         
-        # TODO: Implement audio file storage and return URL
-        return "audio_url_placeholder"
+        # Create output directory if it doesn't exist
+        output_dir = os.path.join(os.path.dirname(__file__), '..', 'static', 'audio')
+        os.makedirs(output_dir, exist_ok=True)
+        
+        # Generate unique filename
+        filename = f"speech_{hash(text)}.mp3"
+        filepath = os.path.join(output_dir, filename)
+        
+        # Save audio file
+        with open(filepath, 'wb') as f:
+            f.write(audio)
+        
+        # Return relative URL path to the audio file
+        return f"/static/audio/{filename}"
         
     except Exception as e:
         print(f"Error generating speech with ElevenLabs: {str(e)}")

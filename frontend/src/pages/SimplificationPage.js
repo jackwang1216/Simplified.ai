@@ -12,6 +12,7 @@ const API_URL = "http://localhost:8000";
 const SimplificationPage = () => {
   const [originalText, setOriginalText] = useState("");
   const [simplifiedText, setSimplifiedText] = useState("");
+  const [audioUrl, setAudioUrl] = useState(null);
   const [readingLevel, setReadingLevel] = useState("elementary");
   const [isTextToSpeechEnabled, setIsTextToSpeechEnabled] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
@@ -36,6 +37,7 @@ const SimplificationPage = () => {
       setError(null);
       setOriginalText(text);
       setSimplifiedText("");
+      setAudioUrl(null);
 
       const response = await axios.post(`${API_URL}/api/simplify`, {
         text,
@@ -44,6 +46,9 @@ const SimplificationPage = () => {
       });
 
       setSimplifiedText(response.data.simplified_text);
+      if (response.data.audio_url) {
+        setAudioUrl(`${API_URL}${response.data.audio_url}`);
+      }
     } catch (error) {
       setError("An error occurred while simplifying the text. Please try again.");
       console.error("Error:", error);
@@ -56,20 +61,21 @@ const SimplificationPage = () => {
     try {
       setIsLoading(true);
       setError(null);
-      
+      setSimplifiedText("");
+      setAudioUrl(null);
+
       const formData = new FormData();
       formData.append("file", file);
       formData.append("reading_level", readingLevel);
       formData.append("text_to_speech", isTextToSpeechEnabled);
 
-      const response = await axios.post(`${API_URL}/api/upload`, formData, {
-        headers: {
-          "Content-Type": "multipart/form-data",
-        },
-      });
+      const response = await axios.post(`${API_URL}/api/upload`, formData);
 
       setOriginalText(response.data.original_text);
       setSimplifiedText(response.data.simplified_text);
+      if (response.data.audio_url) {
+        setAudioUrl(`${API_URL}${response.data.audio_url}`);
+      }
     } catch (error) {
       setError("An error occurred while processing the file. Please try again.");
       console.error("Error:", error);
@@ -135,9 +141,16 @@ const SimplificationPage = () => {
               <ResultsDisplay
                 originalText={originalText}
                 simplifiedText={simplifiedText}
+                audioUrl={audioUrl}
+                isTextToSpeechEnabled={isTextToSpeechEnabled}
                 isLoading={isLoading}
                 error={error}
-                isTextToSpeechEnabled={isTextToSpeechEnabled}
+                onRetry={() => {
+                  setOriginalText("");
+                  setSimplifiedText("");
+                  setAudioUrl(null);
+                  setError(null);
+                }}
               />
             </Paper>
           </Grid>

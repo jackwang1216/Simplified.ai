@@ -1,8 +1,10 @@
 from fastapi import FastAPI, UploadFile, File, Form, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel
 from typing import Optional
 from api.simplification import simplify_text
+from api.text_to_speech import generate_speech
 import PyPDF2
 import io
 
@@ -17,6 +19,9 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+# Mount static directory for serving audio files
+app.mount("/static", StaticFiles(directory="static"), name="static")
+
 class SimplificationRequest(BaseModel):
     text: str
     reading_level: str
@@ -25,6 +30,7 @@ class SimplificationRequest(BaseModel):
 class SimplificationResponse(BaseModel):
     simplified_text: str
     original_text: Optional[str] = None
+    audio_url: Optional[str] = None
 
 @app.get("/api/test")
 async def test():
@@ -38,9 +44,15 @@ async def simplify(request: SimplificationRequest):
             request.reading_level,
         )
         
+        # Generate audio if text-to-speech is requested
+        audio_url = None
+        if request.text_to_speech:
+            audio_url = generate_speech(simplified)
+        
         return SimplificationResponse(
             simplified_text=simplified,
-            original_text=request.text
+            original_text=request.text,
+            audio_url=audio_url
         )
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
@@ -67,9 +79,15 @@ async def upload(
             reading_level,
         )
         
+        # Generate audio if text-to-speech is requested
+        audio_url = None
+        if text_to_speech:
+            audio_url = generate_speech(simplified_text)
+        
         return SimplificationResponse(
             simplified_text=simplified_text,
-            original_text=text
+            original_text=text,
+            audio_url=audio_url
         )
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))

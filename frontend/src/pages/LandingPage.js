@@ -1,6 +1,6 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Box, Button, Container, Typography, Grid, Card, CardContent } from '@mui/material';
+import { Box, Button, Container, Typography, Grid, Card } from '@mui/material';
 import { styled } from '@mui/material/styles';
 import AutoFixHighIcon from '@mui/icons-material/AutoFixHigh';
 import SpeedIcon from '@mui/icons-material/Speed';

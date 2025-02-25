@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import { ThemeProvider, createTheme } from '@mui/material/styles';
 import CssBaseline from '@mui/material/CssBaseline';
@@ -7,6 +7,9 @@ import { Link } from 'react-router-dom';
 import LandingPage from './pages/LandingPage';
 import SimplificationPage from './pages/SimplificationPage';
 import ErrorPage from './pages/ErrorPage';
+import axios from 'axios';
+
+const API_URL = 'http://localhost:8000'; // Local development server
 
 const theme = createTheme({
   palette: {
@@ -134,6 +137,61 @@ function NavBar() {
 }
 
 function App() {
+  const [originalText, setOriginalText] = useState('');
+  const [simplifiedText, setSimplifiedText] = useState('');
+  const [audioUrl, setAudioUrl] = useState(null);
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState(null);
+
+  const handleTextSubmit = async (text, readingLevel, textToSpeech) => {
+    try {
+      setIsLoading(true);
+      setError(null);
+
+      const response = await axios.post(`${API_URL}/api/simplify`, {
+        text,
+        reading_level: readingLevel,
+        text_to_speech: textToSpeech
+      });
+
+      setOriginalText(response.data.original_text);
+      setSimplifiedText(response.data.simplified_text);
+      if (response.data.audio_url) {
+        setAudioUrl(`${API_URL}${response.data.audio_url}`);
+      }
+    } catch (err) {
+      setError('Failed to simplify text. Please try again.');
+      console.error('Error:', err);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleFileUpload = async (file) => {
+    try {
+      setIsLoading(true);
+      setError(null);
+
+      const formData = new FormData();
+      formData.append('file', file);
+      formData.append('reading_level', 'intermediate');
+      formData.append('text_to_speech', true);
+
+      const response = await axios.post(`${API_URL}/api/upload`, formData);
+
+      setOriginalText(response.data.original_text);
+      setSimplifiedText(response.data.simplified_text);
+      if (response.data.audio_url) {
+        setAudioUrl(`${API_URL}${response.data.audio_url}`);
+      }
+    } catch (err) {
+      setError('Failed to process file. Please try again.');
+      console.error('Error:', err);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   return (
     <ThemeProvider theme={theme}>
       <CssBaseline />
@@ -143,7 +201,17 @@ function App() {
           <Box sx={{ pt: 8 }}>
             <Routes>
               <Route path="/" element={<LandingPage />} />
-              <Route path="/simplify" element={<SimplificationPage />} />
+              <Route path="/simplify" element={
+                <SimplificationPage
+                  onTextSubmit={handleTextSubmit}
+                  onFileUpload={handleFileUpload}
+                  originalText={originalText}
+                  simplifiedText={simplifiedText}
+                  audioUrl={audioUrl}
+                  isLoading={isLoading}
+                  error={error}
+                />
+              } />
               <Route path="*" element={<ErrorPage />} />
             </Routes>
           </Box>
