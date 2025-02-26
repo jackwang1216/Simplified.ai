@@ -6,6 +6,7 @@ from typing import Optional
 from api.simplification import simplify_text
 from api.text_to_speech import generate_speech
 from api.document_parser import parse_document
+from api.question import answer_question
 import PyPDF2
 import io
 from reportlab.pdfgen import canvas
@@ -156,10 +157,28 @@ async def generate_pdf(request: SimplificationRequest):
 
 @app.post("/api/question")
 async def question(request: dict):
+    """
+    Answer a question about the provided context.
+    
+    Args:
+        request (dict): Dictionary containing:
+            - question (str): The question to answer
+            - context (str): The context to use for answering
+            
+    Returns:
+        dict: Dictionary containing the answer
+    """
     try:
+        if "question" not in request or "context" not in request:
+            raise HTTPException(
+                status_code=400,
+                detail="Request must include both 'question' and 'context'"
+            )
+            
         answer = answer_question(request["question"], request["context"])
         return {"answer": answer}
     except Exception as e:
+        print(f"Error in question endpoint: {str(e)}")
         raise HTTPException(status_code=500, detail=str(e))
 
 if __name__ == "__main__":
