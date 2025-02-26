@@ -5,6 +5,7 @@ from pydantic import BaseModel
 from typing import Optional
 from api.simplification import simplify_text
 from api.text_to_speech import generate_speech
+from api.document_parser import parse_document
 import PyPDF2
 import io
 from reportlab.pdfgen import canvas
@@ -66,16 +67,12 @@ async def upload(
     text_to_speech: bool = Form(False)
 ) -> SimplificationResponse:
     try:
-        content = await file.read()
+        # Pass the file directly to the document parser
+        text = await parse_document(file)
         
-        if file.filename.endswith('.pdf'):
-            pdf_reader = PyPDF2.PdfReader(io.BytesIO(content))
-            text = ""
-            for page in pdf_reader.pages:
-                text += page.extract_text()
-        else:
-            text = content.decode()
-        
+        if not text.strip():
+            raise Exception("No text could be extracted from the document")
+            
         simplified_text = simplify_text(
             text,
             reading_level,
@@ -92,6 +89,7 @@ async def upload(
             audio_url=audio_url
         )
     except Exception as e:
+        print(f"Error processing upload: {str(e)}")
         raise HTTPException(status_code=500, detail=str(e))
 
 @app.post("/api/generate-pdf")
