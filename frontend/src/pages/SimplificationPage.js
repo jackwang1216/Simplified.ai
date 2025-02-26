@@ -1,6 +1,17 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
-import { Box, Grid, Paper, Typography, Container } from "@mui/material";
+import { 
+  Box, 
+  Grid, 
+  Paper, 
+  Typography, 
+  Container,
+  Divider,
+  useTheme,
+  LinearProgress,
+  Alert,
+  Fade
+} from "@mui/material";
 import FileUpload from "../components/FileUpload";
 import SimplificationOptions from "../components/SimplificationOptions";
 import ResultsDisplay from "../components/ResultsDisplay";
@@ -10,6 +21,7 @@ import ExportOptions from "../components/ExportOptions";
 const API_URL = "http://localhost:8000";
 
 const SimplificationPage = () => {
+  const theme = useTheme();
   const [originalText, setOriginalText] = useState("");
   const [simplifiedText, setSimplifiedText] = useState("");
   const [audioUrl, setAudioUrl] = useState(null);
@@ -108,42 +120,46 @@ const SimplificationPage = () => {
   return (
     <Box
       sx={{
-        display: "flex",
-        width: "100%",
-        position: "relative",
-        overflow: "hidden",
-        maxWidth: "100vw",
+        minHeight: '100vh',
+        backgroundColor: theme.palette.grey[50],
+        pt: 4,
+        pb: 8
       }}
     >
-      <Box
-        sx={{
-          flexGrow: 1,
-          width: "100%",
-          px: { xs: 2, md: 3 },
-          py: 3,
-          maxWidth: "100%",
-          transition: (theme) =>
-            theme.transitions.create(["margin", "max-width"], {
-              easing: theme.transitions.easing.sharp,
-              duration: theme.transitions.duration.enteringScreen,
-            }),
-        }}
-      >
-        <Box sx={{ display: "flex", alignItems: "center", mb: 3, gap: 2 }}>
-          <Typography variant="h5" component="h1" sx={{ flexGrow: 1 }}>
-            Simplify Text
+      <Container maxWidth="lg">
+        <Box sx={{ mb: 6 }}>
+          <Typography variant="h4" component="h1" gutterBottom sx={{ fontWeight: 'bold', color: theme.palette.primary.main }}>
+            Text Simplification
+          </Typography>
+          <Typography variant="subtitle1" color="text.secondary">
+            Simplify complex text into clear, easy-to-understand language
           </Typography>
         </Box>
-        <Grid container spacing={3}>
+
+        <Grid container spacing={4}>
+          {/* Input Section */}
           <Grid item xs={12}>
-            <Paper elevation={3} sx={{ p: 3 }}>
+            <Paper 
+              elevation={0}
+              sx={{ 
+                p: 4,
+                borderRadius: 2,
+                border: `1px solid ${theme.palette.divider}`,
+                backgroundColor: '#fff'
+              }}
+            >
+              <Typography variant="h6" gutterBottom sx={{ fontWeight: 'medium' }}>
+                Input Text
+              </Typography>
               <FileUpload
                 onFileUpload={handleFileUpload}
                 onTextSubmit={handleTextSubmit}
                 isLoading={isLoading}
                 error={error}
               />
-              <Box sx={{ mt: 3 }}>
+              
+              <Box sx={{ mt: 4 }}>
+                <Divider sx={{ mb: 3 }} />
                 <SimplificationOptions
                   readingLevel={readingLevel}
                   onReadingLevelChange={setReadingLevel}
@@ -154,9 +170,41 @@ const SimplificationPage = () => {
             </Paper>
           </Grid>
 
+          {/* Loading Indicator */}
+          {isLoading && (
+            <Grid item xs={12}>
+              <Fade in={isLoading} timeout={1000}>
+                <Box sx={{ width: '100%' }}>
+                  <LinearProgress />
+                  <Typography variant="body2" color="text.secondary" sx={{ mt: 1, textAlign: 'center' }}>
+                    Processing your text...
+                  </Typography>
+                </Box>
+              </Fade>
+            </Grid>
+          )}
+
+          {/* Error Message */}
+          {error && (
+            <Grid item xs={12}>
+              <Alert severity="error" onClose={() => setError(null)}>
+                {error}
+              </Alert>
+            </Grid>
+          )}
+
+          {/* Results Section */}
           {(originalText || simplifiedText) && (
             <Grid item xs={12}>
-              <Paper elevation={3} sx={{ p: 3 }}>
+              <Paper 
+                elevation={0}
+                sx={{ 
+                  p: 4,
+                  borderRadius: 2,
+                  border: `1px solid ${theme.palette.divider}`,
+                  backgroundColor: '#fff'
+                }}
+              >
                 <ResultsDisplay
                   originalText={originalText}
                   simplifiedText={simplifiedText}
@@ -175,9 +223,18 @@ const SimplificationPage = () => {
             </Grid>
           )}
 
+          {/* Export Options */}
           {simplifiedText && (
             <Grid item xs={12}>
-              <Paper elevation={3} sx={{ p: 3 }}>
+              <Paper 
+                elevation={0}
+                sx={{ 
+                  p: 4,
+                  borderRadius: 2,
+                  border: `1px solid ${theme.palette.divider}`,
+                  backgroundColor: '#fff'
+                }}
+              >
                 <ExportOptions
                   simplifiedText={simplifiedText}
                   originalText={originalText}
@@ -186,7 +243,7 @@ const SimplificationPage = () => {
             </Grid>
           )}
         </Grid>
-      </Box>
+      </Container>
     </Box>
   );
 };
