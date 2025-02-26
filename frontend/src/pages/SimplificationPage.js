@@ -226,20 +226,12 @@ const SimplificationPage = () => {
           {/* Export Options */}
           {simplifiedText && (
             <Grid item xs={12}>
-              <Paper 
-                elevation={0}
-                sx={{ 
-                  p: 4,
-                  borderRadius: 2,
-                  border: `1px solid ${theme.palette.divider}`,
-                  backgroundColor: '#fff'
-                }}
-              >
-                <ExportOptions
+              <Box mt={3}>
+                <ExportOptions 
                   simplifiedText={simplifiedText}
-                  originalText={originalText}
+                  readingLevel={readingLevel}
                 />
-              </Paper>
+              </Box>
             </Grid>
           )}
         </Grid>

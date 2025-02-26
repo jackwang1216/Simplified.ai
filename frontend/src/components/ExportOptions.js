@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import axios from 'axios';
 import {
   Box,
   Button,
@@ -13,21 +14,51 @@ import {
   Email as EmailIcon,
 } from '@mui/icons-material';
 
-const ExportOptions = ({ simplifiedText }) => {
+const API_URL = "http://localhost:8000";
+
+const ExportOptions = ({ simplifiedText, readingLevel }) => {
   const [email, setEmail] = useState('');
   const [snackbarOpen, setSnackbarOpen] = useState(false);
   const [snackbarMessage, setSnackbarMessage] = useState('');
 
-  const handleDownload = (format) => {
-    const element = document.createElement('a');
-    const file = new Blob([simplifiedText], { type: 'text/plain' });
-    element.href = URL.createObjectURL(file);
-    element.download = `simplified-document.${format.toLowerCase()}`;
-    document.body.appendChild(element);
-    element.click();
-    document.body.removeChild(element);
-    
-    showSnackbar(`Downloaded as ${format}`);
+  const handleDownload = async (format) => {
+    try {
+      if (format.toLowerCase() === 'pdf') {
+        const response = await axios.post(
+          `${API_URL}/api/generate-pdf`,
+          {
+            text: simplifiedText,
+            reading_level: readingLevel,
+            text_to_speech: false
+          },
+          {
+            responseType: 'blob',
+          }
+        );
+
+        const url = window.URL.createObjectURL(new Blob([response.data]));
+        const link = document.createElement('a');
+        link.href = url;
+        link.setAttribute('download', 'simplified-document.pdf');
+        document.body.appendChild(link);
+        link.click();
+        link.remove();
+        window.URL.revokeObjectURL(url);
+      } else {
+        const element = document.createElement('a');
+        const file = new Blob([simplifiedText], { type: 'text/plain' });
+        element.href = URL.createObjectURL(file);
+        element.download = `simplified-document.${format.toLowerCase()}`;
+        document.body.appendChild(element);
+        element.click();
+        document.body.removeChild(element);
+      }
+      
+      showSnackbar(`Downloaded as ${format}`);
+    } catch (error) {
+      console.error('Error downloading file:', error);
+      showSnackbar('Error downloading file. Please try again.');
+    }
   };
 
   const handleCopyToClipboard = () => {
@@ -56,15 +87,15 @@ const ExportOptions = ({ simplifiedText }) => {
         <ButtonGroup variant="outlined">
           <Button
             startIcon={<DownloadIcon />}
-            onClick={() => handleDownload('TXT')}
-          >
-            Download TXT
-          </Button>
-          <Button
-            startIcon={<DownloadIcon />}
             onClick={() => handleDownload('PDF')}
           >
             Download PDF
+          </Button>
+          <Button
+            startIcon={<DownloadIcon />}
+            onClick={() => handleDownload('TXT')}
+          >
+            Download TXT
           </Button>
           <Button
             startIcon={<ContentCopyIcon />}
