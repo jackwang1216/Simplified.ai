@@ -7,7 +7,6 @@ An AI-powered accessibility tool that simplifies complex documents for better un
 - Document simplification with multiple reading levels
 - Support for PDF, DOCX, and TXT files
 - Text-to-speech functionality
-- Multi-language support
 - Interactive Q&A with AI
 - Privacy-focused processing
 - Export options (PDF, TXT, Email)
@@ -17,7 +16,7 @@ An AI-powered accessibility tool that simplifies complex documents for better un
 - Frontend: React.js with Material-UI
 - Backend: FastAPI and Python
 - Document Parsing: PDF.js
-- API: Google TTS/ElevenLabs, Open AI
+- API: ElevenLabs, Open AI, Azure
 
 
 ## Usage
