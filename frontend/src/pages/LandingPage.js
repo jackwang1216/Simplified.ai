@@ -5,6 +5,7 @@ import { styled } from '@mui/material/styles';
 import AutoFixHighIcon from '@mui/icons-material/AutoFixHigh';
 import SpeedIcon from '@mui/icons-material/Speed';
 import SecurityIcon from '@mui/icons-material/Security';
+import demoVideo from '../assets/videos/simplifyai.mp4';
 
 const StyledContainer = styled(Container)(({ theme }) => ({
   minHeight: 'calc(100vh - 64px)', // Account for navbar
@@ -135,11 +136,18 @@ const LandingPage = () => {
               alignItems: 'center',
               justifyContent: 'center',
               mt: 4,
+              overflow: 'hidden',
             }}
           >
-            <Typography variant="h6" color="text.secondary">
-              Interactive Demo Coming Soon
-            </Typography>
+            <video
+              controls
+              width="100%"
+              height="100%"
+              style={{ objectFit: 'contain' }}
+            >
+              <source src={demoVideo} type="video/mp4" />
+              Your browser does not support the video tag.
+            </video>
           </Box>
         </Box>
       </DemoSection>
